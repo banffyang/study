@@ -3,8 +3,8 @@ import time
 import pybithumb
 import datetime
 
-access = "aaa"
-secret = "aaa"
+access = "ㅁㅁ"
+secret = "ㅁㅁ"
 
 def get_start_time(ticker):
     """장 시작 시간 조회"""
@@ -37,7 +37,7 @@ while True:
         start_time = get_start_time("BTC") # 11:59
         end_time = start_time + + datetime.timedelta(minutes=1) # 00:00
         # start_time = end_time + datetime.timedelta(minutes=-1) # 11:59
-        end_time2 = end_time + datetime.timedelta(minutes=1) # 00:01
+        end_time2 = start_time + datetime.timedelta(days=-1) + datetime.timedelta(minutes=2) # 00:01
         print("now",now)
         print("start_time",start_time)
         print("end_time",end_time)
@@ -81,7 +81,7 @@ while True:
         elif end_time2 < now:
             for targetCoin in tickerForOrder:
                  # 타겟코인 보유량
-                coinBalance = get_balance(targetCoin)[0]
+                coinBalance = bithumb.get_balance(targetCoin)[0]
                 if coinBalance > 0:
                     # print("매도")
                     sellResult = bithumb.sell_market_order(targetCoin, coinBalance)
