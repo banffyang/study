@@ -3,8 +3,8 @@ import time
 import pybithumb
 import datetime
 
-access = "3f488f612a6c6305f1d81c7f4784cbc9"
-secret = "aaf84e8d1c546cb0d889304486165eba"
+access = "aaa"
+secret = "aaa"
 
 def get_start_time(ticker):
     """장 시작 시간 조회"""
