@@ -47,7 +47,7 @@ while True:
         print(end_time)
         # 9:00 < 현재 < #8:59:50
         if start_time < now < end_time - datetime.timedelta(seconds=10):
-            target_price = get_target_price("KRW-BTC", 0.1)
+            target_price = get_target_price("KRW-BTC", 0.7)
             current_price = get_current_price("KRW-BTC")
             print(target_price)
             print(current_price)
