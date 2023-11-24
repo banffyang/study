@@ -64,6 +64,16 @@ while True:
         if start_time < now < end_time - datetime.timedelta(minutes=2):
             target_price = get_target_price(coin_KRW, k)
             current_price = get_current_price(coin_KRW)
+
+            # target 가격(변동성)에 도달 하고 sell_status 상태 정보가 '0'일 때 매수 진행
+            if target_price < current_price and sell_status == 0:
+                krw = get_balance("KRW")
+                if krw > 5000:
+                    upbit.buy_market_order(coin_KRW, krw*0.9995)
+                    sell_status = 9 # 매수 진행 시 sell_status 상태 정보 9
+                    print("buy")
+                    print(current_price)
+
             buy_avg_price = upbit.get_avg_buy_price(coinName)
             if(buy_avg_price != None):
                 print("target_price",target_price)
@@ -76,56 +86,47 @@ while True:
                 print(f'현재가격:{current_price}', f'target가격:{target_price}', f'평균매수가격:{buy_avg_price}')
                 print(f'%1st수익예상:{sell_price_plus_1}',f'%2nd수익예상:{sell_price_plus_2}')
                 print(f'%1st손절예상:{sell_price_minus_1}',f'%2nd손절예상:{sell_price_minus_2}', sell_status)
-            
-            # target 가격(변동성)에 도달 하고 sell_status 상태 정보가 '0'일 때 매수 진행
-            if target_price < current_price and sell_status == 0:
-                krw = get_balance("KRW")
-                if krw > 5000:
-                    upbit.buy_market_order(coin_KRW, krw*0.9995)
-                    sell_status = 9 # 매수 진행 시 sell_status 상태 정보 9
-                    print("buy")
-                    print(current_price)
-            # 익절 %변동에 따른 1st 50% 매도 진행
-            if current_price > sell_price_plus_1 and (sell_status == 9 or sell_status == 0):
-                coin = get_balance(coinName)
-                if coin > low_limit_coin:
-                    upbit.sell_market_order(coin_KRW, coin*0.5)
-                    sell_status = 1
-                    print("plus 1st sell")
-                    print(current_price)
-            # 익절 % 변동에 따른 1st 이후 진입가격(하락) 도달 시 100% 매도
-            if current_price < buy_avg_price and (sell_status == 1 or sell_status == 0):
-                coin = get_balance(coinName)
-                if coin > low_limit_coin:
-                    upbit.sell_market_order(coin_KRW, coin*0.9995)
-                    sell_status = 5
-                    print("same same sell")
-                    print(current_price)
-            # 익절 %변동에 따른 2nd 100% 매도 진행
-            if current_price > sell_price_plus_2 and (sell_status == 1 or sell_status == 0):
-                coin = get_balance(coinName)
-                if coin > low_limit_coin:
-                    upbit.sell_market_order(coin_KRW, coin*0.9995)
-                    sell_status = 2
-                    print("plus 2nd sell")
-                    print(current_price)
+                # 익절 %변동에 따른 1st 50% 매도 진행
+                if current_price > sell_price_plus_1 and (sell_status == 9 or sell_status == 0):
+                    coin = get_balance(coinName)
+                    if coin > low_limit_coin:
+                        upbit.sell_market_order(coin_KRW, coin*0.5)
+                        sell_status = 1
+                        print("plus 1st sell")
+                        print(current_price)
+                # 익절 % 변동에 따른 1st 이후 진입가격(하락) 도달 시 100% 매도
+                if current_price < buy_avg_price and (sell_status == 1 or sell_status == 0):
+                    coin = get_balance(coinName)
+                    if coin > low_limit_coin:
+                        upbit.sell_market_order(coin_KRW, coin*0.9995)
+                        sell_status = 5
+                        print("same same sell")
+                        print(current_price)
+                # 익절 %변동에 따른 2nd 100% 매도 진행
+                if current_price > sell_price_plus_2 and (sell_status == 1 or sell_status == 0):
+                    coin = get_balance(coinName)
+                    if coin > low_limit_coin:
+                        upbit.sell_market_order(coin_KRW, coin*0.9995)
+                        sell_status = 2
+                        print("plus 2nd sell")
+                        print(current_price)
 
-            # 손절 %변동에 따른 1st 50% 매도 진행
-            if current_price < sell_price_minus_1 and (sell_status == 9 or sell_status == 0):
-                coin = get_balance(coinName)
-                if coin > low_limit_coin:
-                    upbit.sell_market_order(coin_KRW, coin*0.5)
-                    sell_status = 3
-                    print("minus 1st sell")
-                    print(current_price)
-            # 손절 %변동에 따른 2nd 100% 매도 진행
-            if current_price < sell_price_minus_2 and (sell_status == 3 or sell_status == 0):
-                coin = get_balance(coinName)
-                if coin > low_limit_coin:
-                    upbit.sell_market_order(coin_KRW, coin*0.9995)
-                    sell_status = 4
-                    print("minus 2nd sell")
-                    print(current_price)
+                # 손절 %변동에 따른 1st 50% 매도 진행
+                if current_price < sell_price_minus_1 and (sell_status == 9 or sell_status == 0):
+                    coin = get_balance(coinName)
+                    if coin > low_limit_coin:
+                        upbit.sell_market_order(coin_KRW, coin*0.5)
+                        sell_status = 3
+                        print("minus 1st sell")
+                        print(current_price)
+                # 손절 %변동에 따른 2nd 100% 매도 진행
+                if current_price < sell_price_minus_2 and (sell_status == 3 or sell_status == 0):
+                    coin = get_balance(coinName)
+                    if coin > low_limit_coin:
+                        upbit.sell_market_order(coin_KRW, coin*0.9995)
+                        sell_status = 4
+                        print("minus 2nd sell")
+                        print(current_price)
         # 다음날 08:59:00 < 현재 < 다음날 08:59:55 장 마감시간 전량 매도
         elif end_time - datetime.timedelta(minutes=1) < now < end_time - datetime.timedelta(seconds=5):
             btc = get_balance(coinName)
