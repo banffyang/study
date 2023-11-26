@@ -1,15 +1,19 @@
 import time
 import pyupbit
 import datetime
+import requests
 import numpy as np
 from warnings import filterwarnings
 filterwarnings("ignore", category=FutureWarning)
 
 access = "personal"
 secret = "personal"
+discord = "https://discord.com/api/webhooks/1178139397682626742/NuXGwGJNm3aW1dA13TkjJXA8I4s_xu3ENX3oqODDCcTXq5Uc_fEiRdbgHt892dCxV_ck"
 
 bestRor = 0
 bestK = 0
+
+realK = 0
 
 #Best K 값 구하기
 def getBestK():
@@ -33,12 +37,12 @@ def getBestK():
             bestK = k
     return bestK
 
-
-def get_target_price(ticker, k):
-    """변동성 돌파 전략으로 매수 목표가 조회"""
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
-    target_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
-    return target_price
+def send_message(msg):
+    """디스코드 메세지 전송"""
+    now = datetime.datetime.now()
+    message = {"content": f"[{now.strftime('%Y-%m-%d %H:%M:%S')}] {str(msg)}"}
+    requests.post(discord, data=message)
+    print(message)
 
 def get_start_time(ticker):
     """시작 시간 조회"""
@@ -46,20 +50,6 @@ def get_start_time(ticker):
     start_time = df.index[0]
     return start_time
 
-def get_balance(ticker):
-    """잔고 조회"""
-    balances = upbit.get_balances()
-    for b in balances:
-        if b['currency'] == ticker:
-            if b['balance'] is not None:
-                return float(b['balance'])
-            else:
-                return 0
-    return 0
-
-def get_current_price(ticker):
-    """현재가 조회"""
-    return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
 
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
@@ -75,7 +65,10 @@ while True:
         # Best K값 가져오기
         k= getBestK()
         print(k)
-        time.sleep(1)
+        if(realK != k):
+            realK = k
+            send_message(f'♨♨♨K 값이 {realK} 로 바뀌었으니, 확인하기 바랍니다.♨♨♨')
+        time.sleep(600)
     except Exception as e:
         print(e)
-        time.sleep(1)
+        time.sleep(600)
