@@ -3,8 +3,8 @@ import pyupbit
 import datetime
 import requests
 
-access = "58CFRFfssi46PGCL5Z37a2m866EI0jOTotg3P3xK"
-secret = "qPi1R2q9DSQxC2VRyz2Igc20FBy1XLSjyvbvIyUV"
+access = "aaa"
+secret = "aaa"
 discord = "https://discord.com/api/webhooks/1178139397682626742/NuXGwGJNm3aW1dA13TkjJXA8I4s_xu3ENX3oqODDCcTXq5Uc_fEiRdbgHt892dCxV_ck"
 
 # 변수
