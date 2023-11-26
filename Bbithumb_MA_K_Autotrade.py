@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 
 # 수호의 API
-access = "3ee00a7eaafc56a70057e56f2fda344d"
-secret = "f4de7995d1b1869c468712a7d98fafac"
-discord = "https://discord.com/api/webhooks/1177931669756461196/KzVlnTu3__p664r35nqvntU6eBBg3m9xWO1pVnTbpo-nx_fHlIfw7c00LsYFm9wt0dia"
+#access = "3ee00a7eaafc56a70057e56f2fda344d"
+#secret = "f4de7995d1b1869c468712a7d98fafac"
+#discord = "https://discord.com/api/webhooks/1177931669756461196/KzVlnTu3__p664r35nqvntU6eBBg3m9xWO1pVnTbpo-nx_fHlIfw7c00LsYFm9wt0dia"
 
 # 기태의 API
 access = "3f488f612a6c6305f1d81c7f4784cbc9"
