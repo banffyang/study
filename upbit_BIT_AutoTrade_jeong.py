@@ -3,8 +3,8 @@ import pyupbit
 import datetime
 import requests
 
-access = "aa"
-secret = "aa"
+access = "58CFRFfssi46PGCL5Z37a2m866EI0jOTotg3P3xK"
+secret = "qPi1R2q9DSQxC2VRyz2Igc20FBy1XLSjyvbvIyUV"
 discord = "https://discord.com/api/webhooks/1178139397682626742/NuXGwGJNm3aW1dA13TkjJXA8I4s_xu3ENX3oqODDCcTXq5Uc_fEiRdbgHt892dCxV_ck"
 
 # 변수
@@ -18,6 +18,8 @@ coinName = "BTC" # coin 잔고 조회(매도)
 coin_price = 50000000 # 적용 당시 코인 금액
 low_limit_coin = 5500 / coin_price # 매도 최소 coin 갯수(5000원 / 코인 금액)
 sell_status = 0 # 매매 상태 정보(0:매수가능, 1:1st익절, 2:2nd익절, 3:1st손절, 4:2nd손절, 5:익절후본전)
+send_OnTimeMsg_YN = "N"
+send_SellMsg_YN ="N"
 
 def send_message(msg):
     """디스코드 메세지 전송"""
@@ -77,7 +79,7 @@ while True:
         now = datetime.datetime.now()
         start_time = get_start_time(coin_KRW) #9:00
         end_time = start_time + datetime.timedelta(days=1) #09:00 +1일
-        onTime = datetime.datetime.now().minute
+        checkOnTime = datetime.datetime.now().minute
         print("now",now)
         print("start_time",start_time)
         print("end_time",end_time)
@@ -89,11 +91,14 @@ while True:
             current_price = get_current_price(coin_KRW)
             
             # 정시가 되면 디스코드로 현재시간과 타겟 가격, 현재가격 정보를 보내준다.
-            if (onTime == 00):
+            if (checkOnTime == 00 or checkOnTime == 30 and send_OnTimeMsg_YN =="N"):
                 send_message(f'현재시간: {now}')
                 send_message(f'현재가격: {current_price}')
                 send_message(f'타겟가격: {target_price}')
-            
+                # 정각에 메시지 한번만 보내기 위함.
+                send_OnTimeMsg_YN = "Y"
+            if (checkOnTime == 1 or checkOnTime == 31 and send_OnTimeMsg_YN =="Y"):
+                send_OnTimeMsg_YN = "N"
             # target 가격(변동성)에 도달 하고 sell_status 상태 정보가 '0'일 때 매수 진행
             if target_price < current_price and sell_status == 0:
                 krw = get_balance("KRW")
@@ -114,14 +119,17 @@ while True:
                 sell_price_plus_2 = buy_avg_price * plus_2
                 sell_price_minus_1 = buy_avg_price - buy_avg_price * minus_1
                 sell_price_minus_2 = buy_avg_price - buy_avg_price * minus_2
-                print(f'현재가격:{current_price}', f'target가격:{target_price}', f'평균매수가격:{buy_avg_price}')
-                print(f'%1st수익예상:{sell_price_plus_1}',f'%2nd수익예상:{sell_price_plus_2}')
-                print(f'%1st손절예상:{sell_price_minus_1}',f'%2nd손절예상:{sell_price_minus_2}', sell_status)
                 
-                if (onTime == 00):
+                if (checkOnTime == 00 or checkOnTime == 30 and send_SellMsg_YN =="N"):
+                    print(f'현재가격:{current_price}', f'target가격:{target_price}', f'평균매수가격:{buy_avg_price}')
+                    print(f'%1st수익예상:{sell_price_plus_1}',f'%2nd수익예상:{sell_price_plus_2}')
+                    print(f'%1st손절예상:{sell_price_minus_1}',f'%2nd손절예상:{sell_price_minus_2}', sell_status)
                     send_message(f'현재가격:{current_price}', f'target가격:{target_price}', f'평균매수가격:{buy_avg_price}')
                     send_message(f'%1st수익예상:{sell_price_plus_1}',f'%2nd수익예상:{sell_price_plus_2}')
                     send_message(f'%1st손절예상:{sell_price_minus_1}',f'%2nd손절예상:{sell_price_minus_2}', sell_status)
+                    send_SellMsg_YN = "Y"
+                if (checkOnTime == 1 or checkOnTime == 31 and send_SellMsg_YN =="Y"):
+                    send_SellMsg_YN = "N"
                 # 익절 %변동에 따른 1st 50% 매도 진행
                 if current_price > sell_price_plus_1 and (sell_status == 9 or sell_status == 0):
                     coin = get_balance(coinName)
