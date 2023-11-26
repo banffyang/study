@@ -3,8 +3,8 @@ import pybithumb
 import datetime
 import requests
 
-access = "3ee00a7eaafc56a70057e56f2fda344d"
-secret = "f4de7995d1b1869c468712a7d98fafac"
+access = "ddd"
+secret = "ddddd"
 discord = "https://discord.com/api/webhooks/1177931669756461196/KzVlnTu3__p664r35nqvntU6eBBg3m9xWO1pVnTbpo-nx_fHlIfw7c00LsYFm9wt0dia"
 
 # 변수
