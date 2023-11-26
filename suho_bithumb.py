@@ -2,17 +2,48 @@ import time
 import pybithumb
 import datetime
 import requests
+import numpy as np
 
-access = "ddd"
-secret = "ddddd"
-discord = "https://discord.com/api/webhooks/1177931669756461196/KzVlnTu3__p664r35nqvntU6eBBg3m9xWO1pVnTbpo-nx_fHlIfw7c00LsYFm9wt0dia"
+access = "3f488f612a6c6305f1d81c7f4784cbc9"
+secret = "aaf84e8d1c546cb0d889304486165eba"
+discord = "https://discord.com/api/webhooks/1178139397682626742/NuXGwGJNm3aW1dA13TkjJXA8I4s_xu3ENX3oqODDCcTXq5Uc_fEiRdbgHt892dCxV_ck"
 
 # 변수
-k = 0.3 # k값
+# k = 0.3 # k값
+# K값을 구하기 위한 일자별 기록 구간
+checkDayPeriod = 7
 coinName = "BTC"
 trade_status = 0 # 매매 상태 정보(0:매수가능, 1:1st익절, 2:2nd익절, 3:1st손절, 4:2nd손절, 5:익절후본전)
 send_OnTimeMsg_YN = "N"
 send_SellMsg_YN = "N"
+bestRor = 0
+bestK = 0
+lastK = 0
+
+def get_BestK():
+    global bestRor 
+    global bestK 
+    end_date = datetime.datetime.now()
+    start_date = end_date - datetime.timedelta(days=checkDayPeriod)
+
+    # 해당 기간 동안의 일봉 데이터 가져오기
+    all_data = pybithumb.get_ohlcv(coinName, interval="day")
+    df = all_data.loc[start_date:end_date].copy()
+    for k in np.arange(0.1, 1.0, 0.1):
+        df['range'] = (df['high'] - df['low']) * k
+        df['target'] = df['open'] + df['range'].shift(1)
+
+        df['ror'] = np.where(df['high'] > df['target'],
+                            df['close'] / df['target'],
+                            1)
+
+        ror = df['ror'].cumprod().iloc[-2]
+        k = round(k,1)
+        print("K : ", k, "ror : ", ror)
+        if(ror > bestRor):
+            bestRor = ror
+            bestK = k
+    return bestK
 
 def send_message(msg):
     """디스코드 메세지 전송"""
@@ -54,14 +85,14 @@ def get_current_price(ticker):
     """현재가 조회"""
     return pybithumb.get_current_price(ticker)
 
-current_price = get_current_price(coinName)
-target_price = get_target_price(coinName, k)
 
 # 로그인
 bithumb = pybithumb.Bithumb(access, secret)
-send_message(f'===Bithumb Autotrade start=== {coinName, k}')
+target_price = get_target_price(coinName, 0.5)
+current_price = get_current_price(coinName)
 send_message(f'현재가격: {current_price}')
 send_message(f'타겟가격: {target_price}')
+send_message(f'===Bithumb Autotrade start=== {coinName, 0.5} 기준')
 
 # 자동매매 시작
 while True:
@@ -71,10 +102,19 @@ while True:
         start_time = standard_time.replace(hour=0, minute=1, second=0, microsecond=0)  # 당일 00:01
         end_time = standard_time.replace(hour=23, minute=55, second=0, microsecond=0)  # 당일 23:55
         checkOnTime = datetime.datetime.now().minute
+        # Best K값 가져오기
+        k = get_BestK()
+        print(k)
+        if(lastK != k):
+            lastK = k
+            send_message(f'♨♨♨K 값이 {lastK} 로 바뀌었으니, 확인하기 바랍니다.♨♨♨')
+
+        
+
 
         # 당일 00:01 < 지금 < 당일 23:55
         if start_time <= now <= end_time:
-            target_price = get_target_price(coinName, k)
+            target_price = get_target_price(coinName, lastK)
             current_price = get_current_price(coinName)
 
             # 매 30분 단위로 디스코드로 현재시간과 타겟 가격, 현재가격 정보를 보내준다.
@@ -82,6 +122,7 @@ while True:
                 send_message(f'현재시간: {now}')
                 send_message(f'현재가격: {current_price}')
                 send_message(f'타겟가격: {target_price}')
+                send_message(f'===Bithumb Autotrade start=== {coinName, lastK}')
                 send_OnTimeMsg_YN = "Y"
             # 정각에 메시지 한번만 보내기 위함.
             if (checkOnTime == 1 or checkOnTime == 31) and send_OnTimeMsg_YN == "Y":
