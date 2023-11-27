@@ -74,7 +74,7 @@ def send_sell_message(sell_result, current_price):
 
 
 def get_target_price(ticker, k):
-    """변동성 돌파 전략으로 매수 목표가 조회"""
+    """변동성 돌파 전략으로 Bithumb 매수 목표가 조회"""
     df = pybithumb.get_ohlcv(ticker)
     target_price = df['close'].iloc[-2] + (df['high'].iloc[-2] - df['low'].iloc[-2]) * k
     return target_price
@@ -107,9 +107,9 @@ target_price = get_target_price(coinName, 0.5)
 current_price = get_current_price(coinName)
 ma_days_price = round(get_moving_average(coinName, ma_days),1)
 send_message(f'===Bithumb Autotrade start=== {coinName, 0.5, ma_days}')
-send_message(f'현재가격: {current_price}')
-send_message(f'타겟가격: {target_price}')
-send_message(f'MA타겟가격: {ma_days_price}')
+send_message(f'Bithumb 현재가격: {current_price}')
+send_message(f'Bithumb 타겟가격: {target_price}')
+send_message(f'Bithumb MA타겟가격: {ma_days_price}')
 
 # 자동매매 시작
 while True:
@@ -136,10 +136,10 @@ while True:
 
             # 매 30분 단위로 디스코드로 현재시간과 타겟 가격, 현재가격 정보를 보내준다.
             if (checkOnTime == 0 or checkOnTime == 30) and send_OnTimeMsg_YN == "N":
-                send_message(f'진행중  : {coinName, lastK, ma_days}')
-                send_message(f'현재가격: {current_price}')
-                send_message(f'K타겟가격: {target_price}')
-                send_message(f'MA타겟가격: {ma_days_price}')
+                send_message(f'Bithumb 진행중  : {coinName, lastK, ma_days}')
+                send_message(f'Bithumb 현재가격: {current_price}')
+                send_message(f'Bithumb K타겟가격: {target_price}')
+                send_message(f'Bithumb MA타겟가격: {ma_days_price}')
                 send_OnTimeMsg_YN = "Y"
             # 정각에 메시지 한번만 보내기 위함.
             if (checkOnTime == 1 or checkOnTime == 31) and send_OnTimeMsg_YN == "Y":
