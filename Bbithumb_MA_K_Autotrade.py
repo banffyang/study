@@ -1,4 +1,4 @@
-# version.2023-01v(bestk, ma 추가)
+# version.2023-02v(11/27 변동성 함수 [-1] -> [-2], ma 소숫점 1자리수정)
 
 import time
 import pybithumb
@@ -17,10 +17,9 @@ access = "3f488f612a6c6305f1d81c7f4784cbc9"
 secret = "aaf84e8d1c546cb0d889304486165eba"
 discord = "https://discord.com/api/webhooks/1178139397682626742/NuXGwGJNm3aW1dA13TkjJXA8I4s_xu3ENX3oqODDCcTXq5Uc_fEiRdbgHt892dCxV_ck"
 
-# 변수
-# k = 0.3 # k값
-# K값을 구하기 위한 일자별 기록 구간
-checkDayPeriod = 7
+
+# 변수 모음
+checkDayPeriod = 7 # K값을 구하기 위한 일자별 기록 구간
 coinName = "BTC"
 trade_status = 0 # 매매 상태 정보(0:매수가능, 1:1st익절, 2:2nd익절, 3:1st손절, 4:2nd손절, 5:익절후본전)
 send_OnTimeMsg_YN = "N"
@@ -77,7 +76,7 @@ def send_sell_message(sell_result, current_price):
 def get_target_price(ticker, k):
     """변동성 돌파 전략으로 매수 목표가 조회"""
     df = pybithumb.get_ohlcv(ticker)
-    target_price = df['close'].iloc[-1] + (df['high'].iloc[-1] - df['low'].iloc[-1]) * k
+    target_price = df['close'].iloc[-2] + (df['high'].iloc[-2] - df['low'].iloc[-2]) * k
     return target_price
 
 def get_start_time(ticker):
@@ -106,7 +105,7 @@ def get_moving_average(ticker, days):
 bithumb = pybithumb.Bithumb(access, secret)
 target_price = get_target_price(coinName, 0.5)
 current_price = get_current_price(coinName)
-ma_days_price = get_moving_average(coinName, ma_days)
+ma_days_price = round(get_moving_average(coinName, ma_days),1)
 send_message(f'===Bithumb Autotrade start=== {coinName, 0.5, ma_days}')
 send_message(f'현재가격: {current_price}')
 send_message(f'타겟가격: {target_price}')
@@ -133,7 +132,7 @@ while True:
             current_price = get_current_price(coinName)
 
             # 15일 이동 평균 계산
-            ma_days_price = get_moving_average(coinName, ma_days)
+            ma_days_price = round(get_moving_average(coinName, ma_days),1)
 
             # 매 30분 단위로 디스코드로 현재시간과 타겟 가격, 현재가격 정보를 보내준다.
             if (checkOnTime == 0 or checkOnTime == 30) and send_OnTimeMsg_YN == "N":
