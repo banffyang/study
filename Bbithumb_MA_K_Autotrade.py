@@ -1,4 +1,4 @@
-# version.2023-02v(11/27 변동성 함수 [-1] -> [-2], ma 소숫점 1자리수정)
+# version.2023-03v(11/28 else 시간대 매도 안되는 현상 수정, if bestK 메세지 위치 수정)
 
 import time
 import pybithumb
@@ -6,6 +6,7 @@ import datetime
 import requests
 import numpy as np
 import pandas as pd
+
 
 # 수호의 API
 #access = "3ee00a7eaafc56a70057e56f2fda344d"
@@ -39,11 +40,11 @@ def get_BestK():
     all_data = pybithumb.get_ohlcv(coinName, interval="day")
     df = all_data.loc[start_date:end_date].copy()
     for k in np.arange(0.1, 1.0, 0.1):
-        df['range'] = (df['high'] - df['low']) * k
+        df['range'] = (df['high'].iloc[-2] - df['low'].iloc[-2]) * k
         df['target'] = df['open'] + df['range'].shift(1)
 
-        df['ror'] = np.where(df['high'] > df['target'],
-                            df['close'] / df['target'],
+        df['ror'] = np.where(df['high'].iloc[-2]  > df['target'],
+                            df['close'].iloc[-2]  / df['target'],
                             1)
 
         ror = df['ror'].cumprod().iloc[-2]
@@ -74,7 +75,7 @@ def send_sell_message(sell_result, current_price):
 
 
 def get_target_price(ticker, k):
-    """변동성 돌파 전략으로 Bithumb 매수 목표가 조회"""
+    """변동성 돌파 전략으로 매수 목표가 조회"""
     df = pybithumb.get_ohlcv(ticker)
     target_price = df['close'].iloc[-2] + (df['high'].iloc[-2] - df['low'].iloc[-2]) * k
     return target_price
@@ -107,9 +108,9 @@ target_price = get_target_price(coinName, 0.5)
 current_price = get_current_price(coinName)
 ma_days_price = round(get_moving_average(coinName, ma_days),1)
 send_message(f'===Bithumb Autotrade start=== {coinName, 0.5, ma_days}')
-send_message(f'Bithumb 현재가격: {current_price}')
-send_message(f'Bithumb 타겟가격: {target_price}')
-send_message(f'Bithumb MA타겟가격: {ma_days_price}')
+send_message(f'현재가격: {current_price}')
+send_message(f'타겟가격: {target_price}')
+send_message(f'MA타겟가격: {ma_days_price}')
 
 # 자동매매 시작
 while True:
@@ -120,11 +121,8 @@ while True:
         end_time = standard_time.replace(hour=23, minute=55, second=0, microsecond=0)  # 당일 23:55
         checkOnTime = datetime.datetime.now().minute
         # Best K값 가져오기
-        k = get_BestK()
-        # print(k)
-        if(lastK != k):
-            lastK = k
-            send_message(f'♨♨♨K 값이 {lastK} 로 바뀌었으니, 확인하기 바랍니다.♨♨♨')
+        bestK = get_BestK()
+        
         
         # 당일 00:01 < 지금 < 당일 23:55
         if start_time <= now <= end_time:
@@ -134,13 +132,22 @@ while True:
             # 15일 이동 평균 계산
             ma_days_price = round(get_moving_average(coinName, ma_days),1)
 
+            # print(k)  # 수정 : 아래 세줄 위치 변경
+            if(lastK != bestK):
+                lastK = bestK   # 수정 : k -> bestK
+                send_message(f'♨♨♨K 값이 {lastK} 로 바뀌었으니, 확인하기 바랍니다.♨♨♨')
+                send_message(f'진행중  : {coinName, lastK, ma_days}')
+                send_message(f'현재가격: {current_price}')
+                send_message(f'K타겟가격: {target_price}')
+                send_message(f'MA타겟가격: {ma_days_price}')
             # 매 30분 단위로 디스코드로 현재시간과 타겟 가격, 현재가격 정보를 보내준다.
             if (checkOnTime == 0 or checkOnTime == 30) and send_OnTimeMsg_YN == "N":
-                send_message(f'Bithumb 진행중  : {coinName, lastK, ma_days}')
-                send_message(f'Bithumb 현재가격: {current_price}')
-                send_message(f'Bithumb K타겟가격: {target_price}')
-                send_message(f'Bithumb MA타겟가격: {ma_days_price}')
+                send_message(f'진행중  : {coinName, lastK, ma_days}')
+                send_message(f'현재가격: {current_price}')
+                send_message(f'K타겟가격: {target_price}')
+                send_message(f'MA타겟가격: {ma_days_price}')
                 send_OnTimeMsg_YN = "Y"
+
             # 정각에 메시지 한번만 보내기 위함.
             if (checkOnTime == 1 or checkOnTime == 31) and send_OnTimeMsg_YN == "Y":
                 send_OnTimeMsg_YN = "N"
