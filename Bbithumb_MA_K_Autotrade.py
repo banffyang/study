@@ -1,3 +1,4 @@
+# version.2023-04v(11/29 디스코드 메시지 'Bithumb' 문구 추가)
 # version.2023-03v(11/28 else 시간대 매도 안되는 현상 수정, if bestK 메세지 위치 수정)
 
 import time
@@ -158,7 +159,7 @@ while True:
                 moneyForOrder = accountBalance[2] - accountBalance[3]
                 print("moneyForOrder",moneyForOrder)
                 if moneyForOrder > 8000:
-                    cnt = round(round(moneyForOrder,0) / round(current_price,0), 4) * 0.8
+                    cnt = round(round(moneyForOrder,0) / round(current_price,0)* 0.8, 4) 
                     print("cnt",cnt)
                     buy_result = bithumb.buy_market_order(coinName, cnt)
                     buy_price = get_current_price(coinName)
