@@ -64,14 +64,14 @@ def send_message(msg):
 
 def send_buy_message(buy_result, current_price):
     send_message(f'★★★★★Bithumb 매수체결★★★★★')
-    send_message(f'매수결과: {buy_result}')
+    send_message(f'Bithumb 매수결과: {buy_result}')
     # 실제 산가격은 아님. 나중엔 산금액을 balance로 조회한 정보를 가져와야함.
-    send_message(f'매수금액: {current_price}')
+    send_message(f'Bithumb 매수금액: {current_price}')
 
 def send_sell_message(sell_result, current_price):
     send_message(f'★★★★★Bithumb  매도체결★★★★★')
-    send_message(f'매도결과: {sell_result}')
-    send_message(f'매도금액: {current_price}')
+    send_message(f'Bithumb 매도결과: {sell_result}')
+    send_message(f'Bithumb 매도금액: {current_price}')
 
 
 def get_target_price(ticker, k):
@@ -108,9 +108,9 @@ target_price = get_target_price(coinName, 0.5)
 current_price = get_current_price(coinName)
 ma_days_price = round(get_moving_average(coinName, ma_days),1)
 send_message(f'===Bithumb Autotrade start=== {coinName, 0.5, ma_days}')
-send_message(f'현재가격: {current_price}')
-send_message(f'타겟가격: {target_price}')
-send_message(f'MA타겟가격: {ma_days_price}')
+send_message(f'Bithumb 현재가격: {current_price}')
+send_message(f'Bithumb 타겟가격: {target_price}')
+send_message(f'Bithumb MA타겟가격: {ma_days_price}')
 
 # 자동매매 시작
 while True:
@@ -135,17 +135,17 @@ while True:
             # print(k)  # 수정 : 아래 세줄 위치 변경
             if(lastK != bestK):
                 lastK = bestK   # 수정 : k -> bestK
-                send_message(f'♨♨♨K 값이 {lastK} 로 바뀌었으니, 확인하기 바랍니다.♨♨♨')
-                send_message(f'진행중  : {coinName, lastK, ma_days}')
-                send_message(f'현재가격: {current_price}')
-                send_message(f'K타겟가격: {target_price}')
-                send_message(f'MA타겟가격: {ma_days_price}')
+                send_message(f'♨♨♨Bithumb K 값이 {lastK} 로 바뀌었으니, 확인하기 바랍니다.♨♨♨')
+                send_message(f'Bithumb 진행중  : {coinName, lastK, ma_days}')
+                send_message(f'Bithumb 현재가격: {current_price}')
+                send_message(f'Bithumb K타겟가격: {target_price}')
+                send_message(f'Bithumb MA타겟가격: {ma_days_price}')
             # 매 30분 단위로 디스코드로 현재시간과 타겟 가격, 현재가격 정보를 보내준다.
             if (checkOnTime == 0 or checkOnTime == 30) and send_OnTimeMsg_YN == "N":
-                send_message(f'진행중  : {coinName, lastK, ma_days}')
-                send_message(f'현재가격: {current_price}')
-                send_message(f'K타겟가격: {target_price}')
-                send_message(f'MA타겟가격: {ma_days_price}')
+                send_message(f'Bithumb 진행중  : {coinName, lastK, ma_days}')
+                send_message(f'Bithumb 현재가격: {current_price}')
+                send_message(f'Bithumb K타겟가격: {target_price}')
+                send_message(f'Bithumb MA타겟가격: {ma_days_price}')
                 send_OnTimeMsg_YN = "Y"
 
             # 정각에 메시지 한번만 보내기 위함.
@@ -154,13 +154,16 @@ while True:
 
             if target_price < current_price and ma_days_price < current_price and trade_status == 0:
                 accountBalance = bithumb.get_balance("BTC")
+                print("accountBalance",accountBalance)
                 moneyForOrder = accountBalance[2] - accountBalance[3]
+                print("moneyForOrder",moneyForOrder)
                 if moneyForOrder > 8000:
-                    cnt = round(moneyForOrder / current_price, 5) * 0.8
+                    cnt = round(round(moneyForOrder,0) / round(current_price,0), 4) * 0.8
+                    print("cnt",cnt)
                     buy_result = bithumb.buy_market_order(coinName, cnt)
                     buy_price = get_current_price(coinName)
                     trade_status = 1 # 매수 진행
-
+                    print("buy_result",buy_result)
                     send_buy_message(buy_result, buy_price)
 
         # 당일 23:55 < 지금 < 당일 23:59
