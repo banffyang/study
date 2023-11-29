@@ -159,7 +159,7 @@ while True:
                 moneyForOrder = accountBalance[2] - accountBalance[3]
                 print("moneyForOrder",moneyForOrder)
                 if moneyForOrder > 8000:
-                    cnt = round(round(moneyForOrder,0) / round(current_price,0)* 0.8, 4) 
+                    cnt = round(round(moneyForOrder,0) / round(current_price,0)* 0.7, 4) 
                     print("cnt",cnt)
                     buy_result = bithumb.buy_market_order(coinName, cnt)
                     buy_price = get_current_price(coinName)
