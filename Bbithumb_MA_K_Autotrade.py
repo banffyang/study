@@ -1,3 +1,4 @@
+# version.2023-05v(12/01 최신 버전 정리 완료)
 # version.2023-04v(11/29 디스코드 메시지 'Bithumb' 문구 추가)
 # version.2023-03v(11/28 else 시간대 매도 안되는 현상 수정, if bestK 메세지 위치 수정)
 
@@ -8,16 +9,16 @@ import requests
 import numpy as np
 import pandas as pd
 
-
-# 수호의 API
-#access = "3ee00a7eaafc56a70057e56f2fda344d"
-#secret = "f4de7995d1b1869c468712a7d98fafac"
-#discord = "https://discord.com/api/webhooks/1177931669756461196/KzVlnTu3__p664r35nqvntU6eBBg3m9xWO1pVnTbpo-nx_fHlIfw7c00LsYFm9wt0dia"
+# # 수호의 API(본인 껄로 수정)
+# access = "3ee00a7eaafc56a70057e56f2fda344d"
+# secret = "f4de7995d1b1869c468712a7d98fafac"
+# discord = "https://discord.com/api/webhooks/1177931669756461196/KzVlnTu3__p664r35nqvntU6eBBg3m9xWO1pVnTbpo-nx_fHlIfw7c00LsYFm9wt0dia"
 
 # 기태의 API
 access = "3f488f612a6c6305f1d81c7f4784cbc9"
 secret = "aaf84e8d1c546cb0d889304486165eba"
 discord = "https://discord.com/api/webhooks/1178139397682626742/NuXGwGJNm3aW1dA13TkjJXA8I4s_xu3ENX3oqODDCcTXq5Uc_fEiRdbgHt892dCxV_ck"
+
 
 
 # 변수 모음
@@ -41,11 +42,11 @@ def get_BestK():
     all_data = pybithumb.get_ohlcv(coinName, interval="day")
     df = all_data.loc[start_date:end_date].copy()
     for k in np.arange(0.1, 1.0, 0.1):
-        df['range'] = (df['high'].iloc[-2] - df['low'].iloc[-2]) * k
+        df['range'] = (df['high'] - df['low']) * k
         df['target'] = df['open'] + df['range'].shift(1)
 
-        df['ror'] = np.where(df['high'].iloc[-2]  > df['target'],
-                            df['close'].iloc[-2]  / df['target'],
+        df['ror'] = np.where(df['high'] > df['target'],
+                            df['close'] / df['target'],
                             1)
 
         ror = df['ror'].cumprod().iloc[-2]
@@ -123,27 +124,26 @@ while True:
         checkOnTime = datetime.datetime.now().minute
         # Best K값 가져오기
         bestK = get_BestK()
-        
+
         
         # 당일 00:01 < 지금 < 당일 23:55
-        if start_time <= now <= end_time:
-            target_price = get_target_price(coinName, lastK)
-            current_price = get_current_price(coinName)
-
+        if start_time < now < end_time:
+            
             # 15일 이동 평균 계산
             ma_days_price = round(get_moving_average(coinName, ma_days),1)
 
             # print(k)  # 수정 : 아래 세줄 위치 변경
             if(lastK != bestK):
                 lastK = bestK   # 수정 : k -> bestK
-                send_message(f'♨♨♨Bithumb K 값이 {lastK} 로 바뀌었으니, 확인하기 바랍니다.♨♨♨')
-                send_message(f'Bithumb 진행중  : {coinName, lastK, ma_days}')
-                send_message(f'Bithumb 현재가격: {current_price}')
-                send_message(f'Bithumb K타겟가격: {target_price}')
-                send_message(f'Bithumb MA타겟가격: {ma_days_price}')
+                send_message(f'♨♨♨ Bithumb K값이 {lastK} 로 바뀌었으니, 확인하기 바랍니다.♨♨♨')
+
+            lastK = bestK   # 수정 : k -> bestK
+            target_price = get_target_price(coinName, lastK)
+            current_price = get_current_price(coinName)
+
             # 매 30분 단위로 디스코드로 현재시간과 타겟 가격, 현재가격 정보를 보내준다.
             if (checkOnTime == 0 or checkOnTime == 30) and send_OnTimeMsg_YN == "N":
-                send_message(f'Bithumb 진행중  : {coinName, lastK, ma_days}')
+                send_message(f'Bithumb 진행중  : {coinName, lastK, ma_days, trade_status}')
                 send_message(f'Bithumb 현재가격: {current_price}')
                 send_message(f'Bithumb K타겟가격: {target_price}')
                 send_message(f'Bithumb MA타겟가격: {ma_days_price}')
@@ -155,26 +155,23 @@ while True:
 
             if target_price < current_price and ma_days_price < current_price and trade_status == 0:
                 accountBalance = bithumb.get_balance("BTC")
-                print("accountBalance",accountBalance)
                 moneyForOrder = accountBalance[2] - accountBalance[3]
-                print("moneyForOrder",moneyForOrder)
                 if moneyForOrder > 8000:
-                    cnt = round(round(moneyForOrder,0) / round(current_price,0)* 0.7, 4) 
-                    print("cnt",cnt)
+                    cnt = round(moneyForOrder / current_price, 5) * 0.7
                     buy_result = bithumb.buy_market_order(coinName, cnt)
                     buy_price = get_current_price(coinName)
                     trade_status = 1 # 매수 진행
-                    print("buy_result",buy_result)
+
                     send_buy_message(buy_result, buy_price)
 
-        # 당일 23:55 < 지금 < 당일 23:59
+        # 당일 23:56 < 지금 < 당일 00:00
         else:
             coinBalance = bithumb.get_balance(coinName)[0]
             trade_status = 0 # 매도 진행 or 시간으로 인한 reset
-            if coinBalance > 0.0008:
+
+            if coinBalance > 0.00008:
                 sell_result = bithumb.sell_market_order(coinName, coinBalance)
                 sell_price = get_current_price(coinName)
-
                 send_sell_message(sell_result, sell_price)
 
         time.sleep(1)
